@@ -113,7 +113,7 @@
             "dims_posts2c": [16],
             "dims_postc2prey": [16],
             "dims_vars2prev_xte": [32],
-            "dims_vars2prev_xt": [16],
+            "dims_vars2prev_xe": [16],
             "dims_prevs2c": [16],
             "dims_prevs2s": [16],
             "dims_t2c": [32]
@@ -125,7 +125,7 @@
             "dims_posts2c": [32],
             "dims_postc2prey": [512],
             "dims_vars2prev_xte": [1024, 64],
-            "dims_vars2prev_xt": [512, 32],
+            "dims_vars2prev_xe": [512, 32],
             "dims_prevs2c": [32],
             "dims_prevs2s": [32],
             "dims_t2c": [128,32]
@@ -137,7 +137,7 @@
             "dims_posts2c": [64],
             "dims_postc2prey": [512],
             "dims_vars2prev_xte": [1024, 128],
-            "dims_vars2prev_xt": [512, 64],
+            "dims_vars2prev_xe": [512, 64],
             "dims_prevs2c": [64],
             "dims_prevs2s": [64],
             "dims_t2c": [128]

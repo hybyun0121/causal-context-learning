@@ -136,18 +136,18 @@ def get_frame(discr, gen, dc_vars, device = None, discr_src = None):
     shape_s = discr.shape_s if hasattr(discr, "shape_s") else (dc_vars['dim_s'],)
     if dc_vars['ind_cs']:
         if dc_vars['is_given_c']:
-            tmean_s=discr.s1xte
-            tmean_c=discr.c1sxt
-            std_s1xe = discr.std_s1xte if hasattr(discr, "std_s1xte") else dc_vars['qstd_s']
-            std_c1xt = discr.std_c1sxt if hasattr(discr, "std_c1sxt") else dc_vars['qstd_c']
+            tmean_s=discr.s1cxe
+            tmean_c=discr.c1xte
+            qstd_s = discr.std_s1cxe if hasattr(discr, "std_s1cxe") else dc_vars['qstd_s']
+            qstd_c = discr.std_c1xte if hasattr(discr, "std_c1xte") else dc_vars['qstd_c']
         else:
             tmean_s=discr.s1xe
             tmean_c=discr.c1xt
-            std_s1xe = discr.std_s1xe if hasattr(discr, "std_s1xe") else dc_vars['qstd_s']
-            std_c1xt = discr.std_c1xt if hasattr(discr, "std_c1xt") else dc_vars['qstd_c']
+            qstd_s = discr.std_s1xe if hasattr(discr, "std_s1xe") else dc_vars['qstd_s']
+            qstd_c = discr.std_c1xt if hasattr(discr, "std_c1xt") else dc_vars['qstd_c']
     else:
-        std_s1xte = discr.std_s1xte if hasattr(discr, "std_s1xte") else dc_vars['qstd_s']
-        std_c1sxt = discr.std_c1sxt if hasattr(discr, "std_c1sxt") else dc_vars['qstd_c']
+        qstd_s = discr.std_s1xte if hasattr(discr, "std_s1xte") else dc_vars['qstd_s']
+        qstd_c = discr.std_c1sxt if hasattr(discr, "std_c1sxt") else dc_vars['qstd_c']
 
     std_c1x = discr.std_c1x if hasattr(discr, "std_c1x") else dc_vars['qstd_c']
     mode = dc_vars['mode']
@@ -168,7 +168,7 @@ def get_frame(discr, gen, dc_vars, device = None, discr_src = None):
                    mean_x1cs=gen.x1cs, std_x1cs=dc_vars['pstd_x'],
                    mean_e1s=gen.e1s, std_e1s=dc_vars['pstd_e'], mean_y1c=discr.y1c, std_y1c=discr.std_y1c,
                    mean_s1x=None, std_s1x=None, mean_c1sx=None, std_c1sx=None,
-                   tmean_s1xe=tmean_s, tstd_s1xe=std_s1xe, tmean_c1xt=tmean_c, tstd_c1xt=std_c1xt,
+                   tmean_s1xe=tmean_s, tstd_s1xe=qstd_s, tmean_c1xt=tmean_c, tstd_c1xt=qstd_c,
                    mean_c=dc_vars['mu_c'], std_c=std_c, mean_s=dc_vars['mu_s'], std_s = dc_vars['sig_s'], std_s1ct = std_s1ct, corr_cs=dc_vars['corr_cs'],
                    learn_tprior=mode == 'da', src_mvn_prior=dc_vars['src_mvn_prior'], tgt_mvn_prior=dc_vars['tgt_mvn_prior'], device=device
                    )
@@ -485,8 +485,8 @@ def inference_variables(lossfn_eval, frame, discr, gen, data_loader, device, pha
                         c_hat = cs_samples['c'].squeeze(0)
                         s_hat = cs_samples['s'].squeeze(0)
                     else:
-                        s_hat = frame.qt_s1x.mean({'x':xs, 't':ts, 'e':envs})['s']
-                        c_hat = frame.qt_c1x.mean({'x':xs, 't':ts, 'e':envs, 's':s_hat})['c']
+                        c_hat = frame.qt_c1x.mean({'x':xs, 't':ts, 'e':envs})['c']
+                        s_hat = frame.qt_s1x.mean({'x':xs, 't':ts, 'e':envs, 'c':c_hat})['s']
 
                     if gen_probs:
                         x_hat = frame.p_x1cs.mean({'c':c_hat, 's':s_hat})['x']
@@ -514,9 +514,9 @@ def inference_variables(lossfn_eval, frame, discr, gen, data_loader, device, pha
                         c_hat = cs_samples['c'].squeeze(0)
                         s_hat = cs_samples['s'].squeeze(0)
                     else:
-                        s_hat = frame.qt_s1x.mean({'x':xs, 't':ts, 'e':envs})['s']
-                        c_hat = frame.qt_c1x.mean({'x':xs, 't':ts, 'e':envs, 's':s_hat})['c']
-
+                        c_hat = frame.qt_c1x.mean({'x':xs, 't':ts, 'e':envs})['c']
+                        s_hat = frame.qt_s1x.mean({'x':xs, 't':ts, 'e':envs, 'c':c_hat})['s']
+                    
                     if gen_probs:
                         x_hat = frame.p_x1cs.mean({'c':c_hat, 's':s_hat})['x']
                         y_hat = frame.p_y1c.mean({'c':c_hat})['y']

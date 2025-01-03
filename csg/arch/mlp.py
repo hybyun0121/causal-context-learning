@@ -323,8 +323,8 @@ class MLPcsy1xte(MLPBase):
         self.f_xte2prev = mlp_constructor([dim_x+dim_t+dim_x] + dims_vars2prev_xte if dims_vars2prev_xte is not None else dims_postx2pres, actv, lastactv = False)
         self.f_xe2prev = mlp_constructor([dim_x+dim_x] + dims_vars2prev_xe if dims_vars2prev_xe is not None else dims_postx2pres, actv, lastactv = False)
         
-        self.f_prev2c = mlp_constructor([self.dim_pres4c] + dims_prevs2s + [dim_c], actv, lastactv=False)
-        self.f_prevs2s = mlp_constructor([self.dim_pres4s + dim_c] + dims_prevs2c + [dim_s], actv, lastactv=False)
+        self.f_prev2c = mlp_constructor([self.dim_pres4c] + dims_prevs2c + [dim_c], actv, lastactv=False)
+        self.f_prevs2s = mlp_constructor([self.dim_pres4s + dim_c] + dims_prevs2s + [dim_s], actv, lastactv=False)
   
         # q(y|c)
         self.f_c2y = mlp_constructor([dim_c] + dims_postc2prey + [dim_y], actv, lastactv = False)
@@ -347,9 +347,9 @@ class MLPcsy1xte(MLPBase):
         self._e_cache_prev_s = None
         self._e_cache_prev_c = None
         self._s_cache = None
-        self._x_cache_s = None
-        self._t_cache_s = None
-        self._e_cache_s = None
+        self._x_cache_c = None
+        self._t_cache_c = None
+        self._e_cache_c = None
         self._t_cache_c = None
         self._x_cache_parav = None
 
@@ -357,7 +357,7 @@ class MLPcsy1xte(MLPBase):
         if self.learn_std_c:
             self.nn_std_c = nn.Sequential(
                     mlp_constructor(
-                        [self.dim_pres4s] + dims_prevs2c + [dim_c],
+                        [self.dim_pres4c] + dims_prevs2c + [dim_c],
                         nn.ReLU, lastactv = False),
                     nn.Softplus()
                 )
@@ -404,10 +404,10 @@ class MLPcsy1xte(MLPBase):
         and (not is_same_tensor(e, self._t_cache_c)):
             self._x_cache_parav = x
             self._e_cache_s = e
-            self._parav_cache_xt = self.f_xt2prev(tc.cat([x, e], dim=-1))
+            self._parav_cache_xt = self.f_xe2prev(tc.cat([x, e], dim=-1))
         return self._parav_cache_xt
 
-    def std_s1xte(self, x,t,e):
+    def std_c1xte(self, x,t,e):
         if self.learn_std_c:
             return self.f_std_c(self._get_prevs_xte(x,t,e))
         else:
@@ -447,9 +447,7 @@ class MLPcsy1xte(MLPBase):
         '''
         q(y|c) = q(y|c)q(c,s|x,t,e)
         '''
-        c = self.c1xte(x,t,e)
-        s = self.s1cxe(c,x,e)
-        return self.y1c(c)
+        return self.y1c(self.c1xte(x,t,e))
 
 class MLPx1cs(MLPBase):
     def __init__(self, dim_c = None, dims_prec2paras = None, dim_s = None, dims_pres2postx = None, dim_x = None,
@@ -691,10 +689,10 @@ def create_discr_from_json(stru_name: str, dim_x: int, dim_y: int, dim_t: int, a
             after_actv=after_actv, ind_cs=ind_cs, **stru)
 
 def create_ccl_discr_from_json(stru_name: str, dim_x: int, dim_y: int, dim_t: int, actv: str=None,
-        std_s1xte_val: float=-1., std_c1sxt_val: float=-1., after_actv: bool=True, ind_cs: bool=False, jsonfile: str="mlpstru.json"):
+        std_s1cxe_val: float=-1., std_c1xte_val: float=-1., after_actv: bool=True, ind_cs: bool=False, jsonfile: str="mlpstru.json"):
     stru = json.load(open(jsonfile))['MLPcsy1xte'][stru_name]
     if actv is not None: stru['actv'] = actv
-    return MLPcsy1xte(dim_x=dim_x, dim_y=dim_y, dim_t=dim_t, std_s_val=std_s1xte_val, std_c_val=std_c1sxt_val,
+    return MLPcsy1xte(dim_x=dim_x, dim_y=dim_y, dim_t=dim_t, std_s_val=std_s1cxe_val, std_c_val=std_c1xte_val,
             after_actv=after_actv, ind_cs=ind_cs, **stru)
 
 def create_vae_discr_from_json(stru_name: str, dim_x: int, dim_y: int, actv: str=None,

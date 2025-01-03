@@ -147,7 +147,7 @@ def get_frame(discr, gen, dc_vars, device = None, discr_src = None):
             qstd_c = discr.std_c1xt if hasattr(discr, "std_c1xt") else dc_vars['qstd_c']
     else:
         qstd_s = discr.std_s1xte if hasattr(discr, "std_s1xte") else dc_vars['qstd_s']
-        qstd_c1 = discr.std_c1sxt if hasattr(discr, "std_c1sxt") else dc_vars['qstd_c']
+        qstd_c = discr.std_c1sxt if hasattr(discr, "std_c1sxt") else dc_vars['qstd_c']
 
     std_c1x = discr.std_c1x if hasattr(discr, "std_c1x") else dc_vars['qstd_c']
     mode = dc_vars['mode']
@@ -472,8 +472,8 @@ def inference_variables(lossfn_eval, frame, discr, gen, data_loader, device, pha
                         c_hat = cs_samples['c'].squeeze(0)
                         s_hat = cs_samples['s'].squeeze(0)
                     else:
-                        s_hat = frame.qt_s1x.mean({'x':xs, 't':ts, 'e':envs})['s']
-                        c_hat = frame.qt_c1x.mean({'x':xs, 't':ts, 'e':envs, 's':s_hat})['c']
+                        c_hat = frame.qt_c1x.mean({'x':xs, 't':ts, 'e':envs})['c']
+                        s_hat = frame.qt_s1x.mean({'x':xs, 't':ts, 'e':envs, 'c':c_hat})['s']
 
                     if gen_probs:
                         x_hat = frame.p_x1cs.mean({'c':c_hat, 's':s_hat})['x']
@@ -501,9 +501,9 @@ def inference_variables(lossfn_eval, frame, discr, gen, data_loader, device, pha
                         c_hat = cs_samples['c'].squeeze(0)
                         s_hat = cs_samples['s'].squeeze(0)
                     else:
-                        s_hat = frame.qt_s1x.mean({'x':xs, 't':ts, 'e':envs})['s']
-                        c_hat = frame.qt_c1x.mean({'x':xs, 't':ts, 'e':envs, 's':s_hat})['c']
-
+                        c_hat = frame.qt_c1x.mean({'x':xs, 't':ts, 'e':envs})['c']
+                        s_hat = frame.qt_s1x.mean({'x':xs, 't':ts, 'e':envs, 'c':c_hat})['s']
+                    
                     if gen_probs:
                         x_hat = frame.p_x1cs.mean({'c':c_hat, 's':s_hat})['x']
                         y_hat = frame.p_y1c.mean({'c':c_hat})['y']
